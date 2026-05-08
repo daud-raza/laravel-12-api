@@ -5,32 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index(Request $request): JsonResponse {
-        $query = $request->user()->tasks()->with('category')->latest();
+    public function index(Request $request): JsonResponse
+    {
+        $query = $request->user()->tasks()->with('category', 'tags')->latest();
 
-        // Filter by status
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
-        // Filter by priority
-        if ($request->has('priority')) {
+        if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
         }
-
-        // Filter by category
-        if ($request->has('category_id')) {
+        if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
-
-        // Search by title
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
 
@@ -38,58 +33,57 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Tasks fetched successfully',
-            'tasks'   => $tasks,
+            'data'    => TaskResource::collection($tasks),
+            'meta'    => [
+                'current_page' => $tasks->currentPage(),
+                'last_page'    => $tasks->lastPage(),
+                'total'        => $tasks->total(),
+            ],
         ]);
     }
 
-    public function store(StoreTaskRequest $request): JsonResponse {
+    public function store(StoreTaskRequest $request): JsonResponse
+    {
         $task = $request->user()->tasks()->create($request->validated());
+        $task->load('category', 'tags');
 
-        $task->load('category');
-
-        return response()->json([
-            'message' => 'Task created successfully',
-            'task'    => $task,
-        ], 201);
+        return response()->json(new TaskResource($task), 201);
     }
 
-    public function show(Request $request, Task $task): JsonResponse {
-        if ($task->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
+    public function show(Task $task): JsonResponse
+    {
+        $this->authorize('view', $task);
+        $task->load('category', 'tags', 'comments.user', 'attachments');
 
-        $task->load('category');
-
-        return response()->json([
-            'message' => 'Task fetched successfully',
-            'task'    => $task,
-        ]);
+        return response()->json(new TaskResource($task));
     }
 
-    public function update(UpdateTaskRequest $request, Task $task): JsonResponse {
-        if ($task->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
+    {
+        $this->authorize('update', $task);
         $task->update($request->validated());
+        $task->load('category', 'tags');
 
-        $task->load('category');
-
-        return response()->json([
-            'message' => 'Task updated successfully',
-            'task'    => $task,
-        ]);
+        return response()->json(new TaskResource($task));
     }
 
-    public function destroy(Request $request, Task $task): JsonResponse {
-        if ($task->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
+    public function destroy(Task $task): JsonResponse
+    {
+        $this->authorize('delete', $task);
         $task->delete();
 
+        return response()->json(['message' => 'Task deleted successfully']);
+    }
+
+    public function restore(int $id): JsonResponse
+    {
+        $task = Task::withTrashed()->findOrFail($id);
+        $this->authorize('restore', $task);
+        $task->restore();
+
         return response()->json([
-            'message' => 'Task deleted successfully',
+            'message' => 'Task restored successfully',
+            'task'    => new TaskResource($task->load('category', 'tags')),
         ]);
     }
 }

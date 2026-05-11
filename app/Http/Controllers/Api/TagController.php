@@ -7,60 +7,90 @@ use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Resources\TagResource;
 use App\Models\Tag;
 use App\Models\Task;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TagController extends Controller
 {
-    // List all tags belonging to the authenticated user
     public function index(Request $request): JsonResponse
     {
-        $tags = $request->user()->tags()->get();
+        try {
+            $tags = $request->user()->tags()->get();
 
-        return response()->json([
-            'message' => 'Tags fetched successfully',
-            'tags'    => TagResource::collection($tags),
-        ]);
+            return response()->json([
+                'message' => 'Tags fetched successfully',
+                'tags'    => TagResource::collection($tags),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch tags', ['error' => $e]);
+            return response()->json(['message' => 'Something went wrong while fetching tags.'], 500);
+        }
     }
 
-    // Create a new tag
     public function store(StoreTagRequest $request): JsonResponse
     {
-        $tag = $request->user()->tags()->create($request->validated());
+        try {
+            $tag = DB::transaction(
+                fn () => $request->user()->tags()->create($request->validated())
+            );
 
-        return response()->json([
-            'message' => 'Tag created successfully',
-            'tag'     => new TagResource($tag),
-        ], 201);
+            return response()->json([
+                'message' => 'Tag created successfully',
+                'tag'     => new TagResource($tag),
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Failed to create tag', ['error' => $e]);
+            return response()->json(['message' => 'Something went wrong while creating the tag.'], 500);
+        }
     }
 
-    // Delete a tag
     public function destroy(Request $request, Tag $tag): JsonResponse
     {
-        $this->authorize('delete', $tag);
+        try {
+            $this->authorize('delete', $tag);
 
-        $tag->delete();
+            DB::transaction(fn () => $tag->delete());
 
-        return response()->json(['message' => 'Tag deleted successfully']);
+            return response()->json(['message' => 'Tag deleted successfully']);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to delete this tag.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete tag', ['tag_id' => $tag->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while deleting the tag.'], 500);
+        }
     }
 
-    // Sync tags on a task — replaces all existing tags with the given list
     public function sync(Request $request, Task $task): JsonResponse
     {
-        $this->authorize('update', $task);
+        try {
+            $this->authorize('update', $task);
 
-        $userId = $request->user()->id;
+            $userId = $request->user()->id;
 
-        $request->validate([
-            'tag_ids'   => ['required', 'array'],
-            'tag_ids.*' => ['integer', "exists:tags,id,user_id,{$userId}"],
-        ]);
+            $request->validate([
+                'tag_ids'   => ['required', 'array'],
+                'tag_ids.*' => ['integer', "exists:tags,id,user_id,{$userId}"],
+            ]);
 
-        $task->tags()->sync($request->tag_ids);
+            DB::transaction(fn () => $task->tags()->sync($request->tag_ids));
 
-        return response()->json([
-            'message' => 'Tags synced successfully',
-            'tags'    => TagResource::collection($task->tags),
-        ]);
+            return response()->json([
+                'message' => 'Tags synced successfully',
+                'tags'    => TagResource::collection($task->tags()->get()),
+            ]);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to update tags on this task.'], 403);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'One or more tag IDs are invalid. Make sure you only use tags that belong to your account.',
+                'errors'  => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Failed to sync tags', ['task_id' => $task->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while syncing tags.'], 500);
+        }
     }
 }

@@ -3,68 +3,93 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Jobs\SendWelcomeMail;
 use App\Models\User;
-use Illuminate\Http\Request;
-use App\Http\Requests\Auth\RegisterRequest;
-use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
-class AuthController extends Controller {
-
+class AuthController extends Controller
+{
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        try {
+            $user = DB::transaction(function () use ($request) {
+                return User::create([
+                    'name'     => $request->name,
+                    'email'    => $request->email,
+                    'password' => Hash::make($request->password),
+                ]);
+            });
 
-        SendWelcomeMail::dispatch($user);
+            SendWelcomeMail::dispatch($user);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user'    => new UserResource($user),
-            'token'   => $token,
-        ], 201);
+            return response()->json([
+                'message' => 'User registered successfully',
+                'user'    => new UserResource($user),
+                'token'   => $token,
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Registration failed', ['email' => $request->email, 'error' => $e]);
+            return response()->json(['message' => 'Registration failed. Please try again.'], 500);
+        }
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        try {
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                return response()->json([
+                    'message' => 'The email or password you entered is incorrect.',
+                ], 401);
+            }
+
+            /** @var \App\Models\User $user */
+            $user  = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Login successful',
+                'user'    => new UserResource($user),
+                'token'   => $token,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Login failed', ['email' => $request->email, 'error' => $e]);
+            return response()->json(['message' => 'Login failed. Please try again.'], 500);
         }
-
-        /** @var \App\Models\User $user */
-        $user  = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'user'    => new UserResource($user),
-            'token'   => $token,
-        ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        /** @var \Laravel\Sanctum\PersonalAccessToken $token */
-        $token = $request->user()->currentAccessToken();
-        $token->delete();
+        try {
+            /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+            $token = $request->user()->currentAccessToken();
+            $token->delete();
 
-        return response()->json(['message' => 'Logged out successfully']);
+            return response()->json(['message' => 'Logged out successfully']);
+        } catch (\Throwable $e) {
+            Log::error('Logout failed', ['error' => $e]);
+            return response()->json(['message' => 'Logout failed. Please try again.'], 500);
+        }
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json([
-            'user' => new UserResource($request->user()),
-        ]);
+        try {
+            return response()->json([
+                'user' => new UserResource($request->user()),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch user profile', ['error' => $e]);
+            return response()->json(['message' => 'Failed to fetch your profile. Please try again.'], 500);
+        }
     }
-
 }

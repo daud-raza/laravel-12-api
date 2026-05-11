@@ -8,57 +8,90 @@ use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Task;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CommentController extends Controller
 {
     public function index(Task $task): JsonResponse
     {
-        $this->authorize('view', $task);
+        try {
+            $this->authorize('view', $task);
 
-        $comments = $task->comments()->with('user')->get();
+            $comments = $task->comments()->with('user')->get();
 
-        return response()->json([
-            'message'  => 'Comments fetched successfully',
-            'comments' => CommentResource::collection($comments),
-        ]);
+            return response()->json([
+                'message'  => 'Comments fetched successfully',
+                'comments' => CommentResource::collection($comments),
+            ]);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to view comments on this task.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch comments', ['task_id' => $task->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while fetching comments.'], 500);
+        }
     }
 
     public function store(StoreCommentRequest $request, Task $task): JsonResponse
     {
-        $this->authorize('view', $task);
+        try {
+            $this->authorize('view', $task);
 
-        $comment = $task->comments()->create([
-            'user_id' => $request->user()->id,
-            'body'    => $request->validated()['body'],
-        ]);
+            $comment = DB::transaction(function () use ($request, $task) {
+                $comment = $task->comments()->create([
+                    'user_id' => $request->user()->id,
+                    'body'    => $request->validated()['body'],
+                ]);
+                $comment->load('user');
+                return $comment;
+            });
 
-        $comment->load('user');
-
-        return response()->json([
-            'message' => 'Comment added successfully',
-            'comment' => new CommentResource($comment),
-        ], 201);
+            return response()->json([
+                'message' => 'Comment added successfully',
+                'comment' => new CommentResource($comment),
+            ], 201);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to comment on this task.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to add comment', ['task_id' => $task->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while adding the comment.'], 500);
+        }
     }
 
     public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
     {
-        $this->authorize('update', $comment);
+        try {
+            $this->authorize('update', $comment);
 
-        $comment->update($request->validated());
+            DB::transaction(fn () => $comment->update($request->validated()));
 
-        return response()->json([
-            'message' => 'Comment updated successfully',
-            'comment' => new CommentResource($comment->load('user')),
-        ]);
+            return response()->json([
+                'message' => 'Comment updated successfully',
+                'comment' => new CommentResource($comment->load('user')),
+            ]);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to update this comment.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to update comment', ['comment_id' => $comment->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while updating the comment.'], 500);
+        }
     }
 
     public function destroy(Comment $comment): JsonResponse
     {
-        $this->authorize('delete', $comment);
+        try {
+            $this->authorize('delete', $comment);
 
-        $comment->delete();
+            DB::transaction(fn () => $comment->delete());
 
-        return response()->json(['message' => 'Comment deleted successfully']);
+            return response()->json(['message' => 'Comment deleted successfully']);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to delete this comment.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete comment', ['comment_id' => $comment->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while deleting the comment.'], 500);
+        }
     }
 }

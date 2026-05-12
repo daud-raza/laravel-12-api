@@ -21,12 +21,15 @@ class StoreTaskRequest extends FormRequest
      */
     public function rules(): array {
         return [
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status'      => ['nullable', 'in:pending,in_progress,completed'],
-            'priority'    => ['nullable', 'in:low,medium,high'],
-            'due_date'    => ['nullable', 'date', 'after_or_equal:today'],
+            'category_id'        => ['nullable', 'exists:categories,id'],
+            'title'              => ['required', 'string', 'max:255'],
+            'description'        => ['nullable', 'string'],
+            'status'             => ['nullable', 'in:pending,in_progress,completed'],
+            'priority'           => ['nullable', 'in:low,medium,high'],
+            'due_date'           => ['nullable', 'date', 'after_or_equal:today'],
+            'is_recurring'       => ['boolean'],
+            'recurrence_type'    => ['required_if:is_recurring,true', 'nullable', 'in:daily,weekly,monthly'],
+            'recurrence_ends_at' => ['nullable', 'date', 'after:today'],
         ];
     }
 
@@ -39,8 +42,12 @@ class StoreTaskRequest extends FormRequest
             'description.string' => 'Description must be a string',
             'status.in'          => 'Status must be one of: pending, in_progress, completed',
             'priority.in'        => 'Priority must be one of: low, medium, high',
-            'due_date.date'      => 'Due date must be a date',
-            'due_date.after_or_equal' => 'Due date must be after or equal to today',
+            'due_date.date'               => 'Due date must be a date',
+            'due_date.after_or_equal'     => 'Due date must be after or equal to today',
+            'recurrence_type.required_if' => 'Recurrence type is required when the task is set to recurring.',
+            'recurrence_type.in'          => 'Recurrence type must be one of: daily, weekly, monthly.',
+            'recurrence_ends_at.date'     => 'Recurrence end date must be a valid date.',
+            'recurrence_ends_at.after'    => 'Recurrence end date must be after today.',
         ];
     }
 }

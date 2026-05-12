@@ -17,12 +17,15 @@ class UpdateTaskRequest extends FormRequest {
      */
     public function rules(): array {
         return [
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'title'       => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status'      => ['sometimes', 'in:pending,in_progress,completed'],
-            'priority'    => ['sometimes', 'in:low,medium,high'],
-            'due_date'    => ['nullable', 'date'],
+            'category_id'        => ['nullable', 'exists:categories,id'],
+            'title'              => ['sometimes', 'string', 'max:255'],
+            'description'        => ['nullable', 'string'],
+            'status'             => ['sometimes', 'in:pending,in_progress,completed'],
+            'priority'           => ['sometimes', 'in:low,medium,high'],
+            'due_date'           => ['nullable', 'date'],
+            'is_recurring'       => ['sometimes', 'boolean'],
+            'recurrence_type'    => ['sometimes', 'nullable', 'in:daily,weekly,monthly'],
+            'recurrence_ends_at' => ['sometimes', 'nullable', 'date', 'after:today'],
         ];
     }
 }

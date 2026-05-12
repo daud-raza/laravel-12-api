@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Task\BulkTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
@@ -19,7 +20,9 @@ class TaskController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = $request->user()->tasks()->with('category', 'tags')->latest();
+            $query = $request->user()->tasks()->with('category', 'tags')
+                ->orderByDesc('is_pinned')
+                ->latest();
 
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
@@ -71,7 +74,7 @@ class TaskController extends Controller
     {
         try {
             $this->authorize('view', $task);
-            $task->load('category', 'tags', 'comments.user', 'attachments');
+            $task->load('category', 'tags', 'comments.user', 'attachments', 'subtasks', 'timeLogs');
 
             return response()->json(new TaskResource($task));
         } catch (AuthorizationException) {
@@ -115,6 +118,62 @@ class TaskController extends Controller
         } catch (\Throwable $e) {
             Log::error('Failed to delete task', ['task_id' => $task->id, 'error' => $e]);
             return response()->json(['message' => 'Something went wrong while deleting the task.'], 500);
+        }
+    }
+
+    public function bulk(BulkTaskRequest $request): JsonResponse
+    {
+        try {
+            $userId  = $request->user()->id;
+            $taskIds = $request->task_ids;
+            $action  = $request->action;
+            $value   = $request->value;
+            $tasks = Task::whereIn('id', $taskIds)->where('user_id', $userId)->get();
+
+            if ($tasks->isEmpty()) {
+                return response()->json(['message' => 'No matching tasks found. You can only perform bulk actions on your own tasks.'], 404);
+            }
+
+            DB::transaction(function () use ($tasks, $action, $value) {
+                foreach ($tasks as $task) {
+                    match ($action) {
+                        'update_status'   => $task->update(['status' => $value]),
+                        'update_priority' => $task->update(['priority' => $value]),
+                        'update_category' => $task->update(['category_id' => $value]),
+                        'delete'          => $task->delete(),
+                    };
+                }
+            });
+
+            $count = $tasks->count();
+
+            return response()->json([
+                'message' => "{$count} task(s) updated successfully.",
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to perform bulk action', ['error' => $e]);
+            return response()->json(['message' => 'Something went wrong while performing the bulk action.'], 500);
+        }
+    }
+
+    public function pin(Task $task): JsonResponse
+    {
+        try {
+            $this->authorize('update', $task);
+
+            DB::transaction(fn () => $task->update(['is_pinned' => !$task->is_pinned]));
+
+            $status = $task->is_pinned ? 'pinned' : 'unpinned';
+
+            return response()->json([
+                'message'  => "Task {$status} successfully",
+                'task'     => new TaskResource($task->load('category', 'tags')),
+            ]);
+        } catch (AuthorizationException) {
+            return response()->json(['message' => 'You do not have permission to pin this task.'], 403);
+        } catch (\Throwable $e) {
+            Log::error('Failed to pin task', ['task_id' => $task->id, 'error' => $e]);
+            return response()->json(['message' => 'Something went wrong while pinning the task.'], 500);
         }
     }
 

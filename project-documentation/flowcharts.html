@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laravel Task Manager API — Feature Flowcharts</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3354;
+      --accent: #6c63ff;
+      --accent2: #00c9a7;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --badge-bg: #2e3354;
+      --badge-text: #a5b4fc;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #12141f 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 40px 40px;
+      text-align: center;
+    }
+
+    header .badge {
+      display: inline-block;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a5b4fc, #6c63ff, #00c9a7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Table of Contents ── */
+    .toc {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+
+    .toc h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .toc-grid a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .toc-grid a:hover {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .toc-grid a .num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 22px;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Feature section ── */
+    .feature {
+      margin-bottom: 60px;
+    }
+
+    .feature-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .feature-meta h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .feature-meta p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .endpoints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .ep {
+      font-size: 0.75rem;
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 10px;
+      color: var(--muted);
+    }
+
+    .ep .method {
+      font-weight: 700;
+      margin-right: 5px;
+    }
+
+    .ep .method.post  { color: #4ade80; }
+    .ep .method.get   { color: #60a5fa; }
+    .ep .method.put   { color: #fbbf24; }
+    .ep .method.patch { color: #f97316; }
+    .ep .method.delete{ color: #f87171; }
+
+    /* ── Diagram card ── */
+    .diagram-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      overflow-x: auto;
+    }
+
+    .diagram-card .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── Divider ── */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0 60px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Color accents per section ── */
+    .ic-auth      { background: #1e2a4a; }
+    .ic-task      { background: #1e3a2a; }
+    .ic-complete  { background: #2a1e3a; }
+    .ic-pin       { background: #3a2a1e; }
+    .ic-bulk      { background: #2a3a1e; }
+    .ic-softdel   { background: #3a1e1e; }
+    .ic-category  { background: #1e3a3a; }
+    .ic-tags      { background: #3a3a1e; }
+    .ic-comments  { background: #1e2a3a; }
+    .ic-attach    { background: #2a1e2a; }
+    .ic-subtasks  { background: #1e3a2e; }
+    .ic-timelog   { background: #2e1e3a; }
+    .ic-scheduler { background: #1e2e3a; }
+    .ic-queue     { background: #3a2e1e; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Technical Documentation</div>
+  <h1>Laravel Task Manager API</h1>
+  <p>Feature Flowcharts — Visual execution flows for every module in the system</p>
+</header>
+
+<!-- Table of Contents -->
+<div class="toc">
+  <h2>Features</h2>
+  <div class="toc-grid">
+    <a href="#auth"><span class="num">01</span> Authentication</a>
+    <a href="#task-crud"><span class="num">02</span> Task CRUD</a>
+    <a href="#task-complete"><span class="num">03</span> Task Completion &amp; Recurrence</a>
+    <a href="#task-pin"><span class="num">04</span> Task Pinning</a>
+    <a href="#bulk"><span class="num">05</span> Bulk Actions</a>
+    <a href="#softdel"><span class="num">06</span> Soft Delete &amp; Restore</a>
+    <a href="#categories"><span class="num">07</span> Categories</a>
+    <a href="#tags"><span class="num">08</span> Tags &amp; Tag Sync</a>
+    <a href="#comments"><span class="num">09</span> Comments</a>
+    <a href="#attachments"><span class="num">10</span> File Attachments</a>
+    <a href="#subtasks"><span class="num">11</span> Subtasks / Checklists</a>
+    <a href="#timelogs"><span class="num">12</span> Time Tracking</a>
+    <a href="#scheduler"><span class="num">13</span> Due Date Scheduler</a>
+    <a href="#queue"><span class="num">14</span> Welcome Email Queue</a>
+  </div>
+</div>
+
+<main>
+
+  <!-- 01 Authentication -->
+  <section class="feature" id="auth">
+    <div class="feature-header">
+      <div class="feature-icon ic-auth">🔐</div>
+      <div class="feature-meta">
+        <h2>01 — Authentication</h2>
+        <p>Register and login flows with Sanctum token creation, rate limiting, and validation gates.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method post">POST</span>/api/auth/register</span>
+      <span class="ep"><span class="method post">POST</span>/api/auth/login</span>
+      <span class="ep"><span class="method post">POST</span>/api/auth/logout</span>
+      <span class="ep"><span class="method get">GET</span>/api/auth/me</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> RL[Rate Limiter\n10 req / min per IP]
+    RL --> RT{Throttled?}
+    RT -->|Yes| D[429 Too Many Attempts]
+    RT -->|No| E{Action}
+
+    E -->|Register| RV[Validate\nname · email · password]
+    RV --> RVR{Valid?}
+    RVR -->|No| RVE[422 Validation Error]
+    RVR -->|Yes| RC[User::create]
+    RC --> RQ[SendWelcomeMail::dispatch\nQueued Job]
+    RC --> RT2[createToken auth_token]
+    RT2 --> RS[201 · user + token]
+
+    E -->|Login| LV[Validate\nemail · password]
+    LV --> LVR{Valid?}
+    LVR -->|No| LVE[422 Validation Error]
+    LVR -->|Yes| LA{Auth::attempt?}
+    LA -->|Fail| LF[401 Invalid credentials]
+    LA -->|Pass| LT[createToken auth_token]
+    LT --> LS[200 · user + token]
+
+    E -->|Logout| LO[auth:sanctum verify]
+    LO --> LOT[Delete current token]
+    LOT --> LOM[200 · Logged out]
+
+    E -->|Me| ME[auth:sanctum verify]
+    ME --> MEU[Return auth user]
+    MEU --> MER[200 · UserResource]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 02 Task CRUD -->
+  <section class="feature" id="task-crud">
+    <div class="feature-header">
+      <div class="feature-icon ic-task">📋</div>
+      <div class="feature-meta">
+        <h2>02 — Task CRUD</h2>
+        <p>Full lifecycle for creating, listing, viewing, updating and soft-deleting tasks with policy-based ownership checks.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tasks</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks</span>
+      <span class="ep"><span class="method get">GET</span>/api/tasks/{id}</span>
+      <span class="ep"><span class="method put">PUT</span>/api/tasks/{id}</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/tasks/{id}</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum + throttle:api]
+    MW --> AUTH{Authenticated?}
+    AUTH -->|No| U[401 Unauthenticated]
+    AUTH -->|Yes| ACT{Action}
+
+    ACT -->|GET /tasks| F[Apply Filters\nstatus · priority · category_id · search]
+    F --> P[orderByDesc is_pinned\nthen orderByDesc created_at\npaginate 10]
+    P --> PR[200 · collection + meta\ncurrent_page · last_page · total]
+
+    ACT -->|POST /tasks| SV[StoreTaskRequest\nValidate all fields]
+    SV --> SVR{Valid?}
+    SVR -->|No| SVE[422 Validation Error]
+    SVR -->|Yes| SC[DB::transaction\nuser→tasks→create]
+    SC --> SL[Load category + tags]
+    SL --> SR[201 · TaskResource]
+
+    ACT -->|GET /tasks/id| SH[Route Model Binding]
+    SH --> SHA{authorize view?}
+    SHA -->|No| SHF[403 Forbidden]
+    SHA -->|Yes| SHL[Load category · tags · comments\nattachments · subtasks · timeLogs]
+    SHL --> SHR[200 · TaskResource full]
+
+    ACT -->|PUT /tasks/id| UV[UpdateTaskRequest\nValidate sometimes fields]
+    UV --> UVR{Valid?}
+    UVR -->|No| UVE[422 Validation Error]
+    UVR -->|Yes| UA{authorize update?}
+    UA -->|No| UAF[403 Forbidden]
+    UA -->|Yes| UT[DB::transaction\ntask→update]
+    UT --> UO[TaskObserver fires]
+    UO --> UR[200 · TaskResource]
+
+    ACT -->|DELETE /tasks/id| DA{authorize delete?}
+    DA -->|No| DAF[403 Forbidden]
+    DA -->|Yes| DD[DB::transaction\ntask→delete · SoftDelete]
+    DD --> DR[200 · Task deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 03 Task Completion & Recurrence -->
+  <section class="feature" id="task-complete">
+    <div class="feature-header">
+      <div class="feature-icon ic-complete">🔄</div>
+      <div class="feature-meta">
+        <h2>03 — Task Completion &amp; Recurring Tasks</h2>
+        <p>Observer-driven side-effects when a task is marked complete — auto-timestamps, event dispatch, and next-occurrence creation.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method put">PUT</span>/api/tasks/{id} · status: completed</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) -->|PUT /tasks/id\nstatus: completed| TC[TaskController::update]
+    TC --> TX[DB::transaction\ntask→update]
+    TX --> EV[Eloquent fires\nupdated event]
+    EV --> OB[TaskObserver::updated]
+
+    OB --> SC{status changed\nTO completed?}
+    SC -->|No| SA{status changed\nAWAY from completed?}
+    SA -->|Yes| CL[completed_at = null\nsaveQuietly · timestamps=false]
+    SA -->|No| NO[No-op · exit]
+
+    SC -->|Yes| ST[completed_at = now\nsaveQuietly · timestamps=false]
+    ST --> EV2[TaskCompleted::dispatch task]
+    EV2 --> LOG[LogTaskCompleted::handle\nLog::info · task_id, title, user_id]
+
+    ST --> RG{is_recurring AND\nrecurrence_type set AND\ndue_date set?}
+    RG -->|No| END[End]
+    RG -->|Yes| RT{recurrence_type}
+
+    RT -->|daily|  ND1[nextDueDate = due_date + 1 day]
+    RT -->|weekly| ND2[nextDueDate = due_date + 1 week]
+    RT -->|monthly|ND3[nextDueDate = due_date + 1 month]
+
+    ND1 --> EXP{nextDueDate >\nrecurrence_ends_at?}
+    ND2 --> EXP
+    ND3 --> EXP
+
+    EXP -->|Yes — expired| STOP[Stop · no new task created]
+    EXP -->|No| NC[Task::create\nstatus=pending · is_pinned=false\nnextDueDate · same user/category/priority]
+    NC --> NR[New recurring task created]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 04 Task Pinning -->
+  <section class="feature" id="task-pin">
+    <div class="feature-header">
+      <div class="feature-icon ic-pin">📌</div>
+      <div class="feature-meta">
+        <h2>04 — Task Pinning</h2>
+        <p>Toggle a task's pinned state. Pinned tasks are always sorted to the top of the task list.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{id}/pin</span>
+      <span class="ep"><span class="method get">GET</span>/api/tasks · sorted by is_pinned DESC</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) -->|POST /api/tasks/id/pin| MW[auth:sanctum]
+    MW --> RMB[Route Model Binding\nTask::findOrFail]
+    RMB --> AZ{authorize update?}
+    AZ -->|No| F[403 Forbidden]
+    AZ -->|Yes| TX[DB::transaction\nis_pinned = NOT is_pinned]
+    TX --> RS{Result}
+    RS -->|is_pinned = true|  P1[200 · Task pinned successfully\n+ TaskResource]
+    RS -->|is_pinned = false| P2[200 · Task unpinned successfully\n+ TaskResource]
+
+    B([GET /api/tasks]) --> Q[Query Builder\norderByDesc is_pinned]
+    Q --> Q2[then orderByDesc created_at]
+    Q2 --> Q3[paginate 10]
+    Q3 --> Q4[Pinned tasks always appear first]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 05 Bulk Actions -->
+  <section class="feature" id="bulk">
+    <div class="feature-header">
+      <div class="feature-icon ic-bulk">⚡</div>
+      <div class="feature-meta">
+        <h2>05 — Bulk Actions</h2>
+        <p>Apply a single action to multiple tasks in one transaction. Only the authenticated user's tasks are affected.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method post">POST</span>/api/tasks/bulk</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) -->|POST /api/tasks/bulk| MW[auth:sanctum]
+    MW --> BV[BulkTaskRequest Validate\ntask_ids array · each exists in tasks\naction enum · value required unless delete]
+    BV --> VR{Valid?}
+    VR -->|No| VE[422 Validation Error]
+    VR -->|Yes| FT[Task::whereIn task_ids\n.where user_id = auth user\n.get]
+    FT --> FE{Tasks found?}
+    FE -->|None| NF[404 · No matching tasks found\nCannot act on other users tasks]
+    FE -->|Found| TX[DB::transaction\nloop over tasks]
+
+    TX --> AC{action}
+    AC -->|update_status|   US[task→update · status = value]
+    AC -->|update_priority| UP[task→update · priority = value]
+    AC -->|update_category| UC[task→update · category_id = value]
+    AC -->|delete|          UD[task→delete · SoftDelete]
+
+    US --> OK[200 · N task s updated successfully]
+    UP --> OK
+    UC --> OK
+    UD --> OK
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 06 Soft Delete & Restore -->
+  <section class="feature" id="softdel">
+    <div class="feature-header">
+      <div class="feature-icon ic-softdel">🗑️</div>
+      <div class="feature-meta">
+        <h2>06 — Soft Delete &amp; Restore</h2>
+        <p>Tasks are soft-deleted (hidden, not erased). Restore brings them back. Permanently deleted tasks cannot be restored.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method delete">DELETE</span>/api/tasks/{id}</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{id}/restore</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) -->|DELETE /api/tasks/id| DA{authorize delete?}
+    DA -->|No| DF[403 Forbidden]
+    DA -->|Yes| DD[DB::transaction\ntask→delete]
+    DD --> DS[deleted_at = now\nTask hidden from normal queries\nsubtasks · comments cascade-delete]
+    DS --> DM[200 · Task deleted successfully]
+
+    B([Client]) -->|POST /api/tasks/id/restore| RQ[Task::withTrashed\n→ findOrFail id]
+    RQ --> RF{Found?}
+    RF -->|No| RNF[404 · Task not found\nMay have been permanently deleted]
+    RF -->|Yes| RA{authorize restore?}
+    RA -->|No| RAF[403 Forbidden]
+    RA -->|Yes| RT[DB::transaction\ntask→restore]
+    RT --> RC[deleted_at = null\nTask visible in normal queries again]
+    RC --> RR[200 · Task restored + TaskResource]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 07 Categories -->
+  <section class="feature" id="categories">
+    <div class="feature-header">
+      <div class="feature-icon ic-category">🗂️</div>
+      <div class="feature-meta">
+        <h2>07 — Categories</h2>
+        <p>User-owned groupings for tasks. Deleting a category sets tasks' category_id to null (no cascade delete on tasks).</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/categories</span>
+      <span class="ep"><span class="method post">POST</span>/api/categories</span>
+      <span class="ep"><span class="method get">GET</span>/api/categories/{id}</span>
+      <span class="ep"><span class="method put">PUT</span>/api/categories/{id}</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/categories/{id}</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /categories| GL[user→categories→get]
+    GL --> GR[200 · CategoryResource collection]
+
+    ACT -->|POST /categories| CV[StoreCategoryRequest\nname required · color hex regex]
+    CV --> CVR{Valid?}
+    CVR -->|No| CVE[422 Validation Error]
+    CVR -->|Yes| CC[user→categories→create]
+    CC --> CR[201 · CategoryResource]
+
+    ACT -->|GET /categories/id| SH[Route Model Binding]
+    SH --> SHA{authorize view?}
+    SHA -->|No| SHF[403]
+    SHA -->|Yes| SHR[200 · CategoryResource]
+
+    ACT -->|PUT /categories/id| UA{authorize update?}
+    UA -->|No| UF[403]
+    UA -->|Yes| UV[UpdateCategoryRequest\nname · color sometimes]
+    UV --> UT[category→update]
+    UT --> UR[200 · CategoryResource]
+
+    ACT -->|DELETE /categories/id| DA{authorize delete?}
+    DA -->|No| DF[403]
+    DA -->|Yes| DD[category→delete]
+    DD --> DN[tasks · category_id → null\nnullOnDelete constraint]
+    DN --> DR[200 · Category deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 08 Tags -->
+  <section class="feature" id="tags">
+    <div class="feature-header">
+      <div class="feature-icon ic-tags">🏷️</div>
+      <div class="feature-meta">
+        <h2>08 — Tags &amp; Tag Sync</h2>
+        <p>User-owned reusable labels. Syncing replaces all tags on a task at once. Slug is auto-generated from name.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tags</span>
+      <span class="ep"><span class="method post">POST</span>/api/tags</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/tags/{id}</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/tags</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /tags| GL[user→tags→get]
+    GL --> GR[200 · TagResource collection]
+
+    ACT -->|POST /tags| TV[StoreTagRequest\nname max 50]
+    TV --> TVR{Valid?}
+    TVR -->|No| TVE[422]
+    TVR -->|Yes| TC[user→tags→create]
+    TC --> TS[booted creating hook\nStr::slug name → slug]
+    TS --> TR[201 · TagResource]
+
+    ACT -->|DELETE /tags/id| DA{authorize delete?\nowner only}
+    DA -->|No| DF[403]
+    DA -->|Yes| DD[tag→delete]
+    DD --> DN[Detached from all tasks\nvia pivot cascade]
+    DN --> DR[200 · Tag deleted]
+
+    ACT -->|POST /tasks/task/tags| STA{authorize update task?}
+    STA -->|No| STF[403]
+    STA -->|Yes| STV[Validate tag_ids array\nall belong to auth user]
+    STV --> STS[task→tags→sync tag_ids]
+    STS --> STN[Replaces ALL existing tags\non this task atomically]
+    STN --> STR[200 · Tags synced]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 09 Comments -->
+  <section class="feature" id="comments">
+    <div class="feature-header">
+      <div class="feature-icon ic-comments">💬</div>
+      <div class="feature-meta">
+        <h2>09 — Comments</h2>
+        <p>Nested under tasks for listing and creating. Shallow routes for update/delete — comment ID alone is sufficient.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tasks/{task}/comments</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/comments</span>
+      <span class="ep"><span class="method put">PUT</span>/api/comments/{id}</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/comments/{id}</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /tasks/task/comments| GA{authorize viewAny\nvia task ownership}
+    GA -->|No| GF[403]
+    GA -->|Yes| GQ[task→comments\nwith user · ordered latest first]
+    GQ --> GR[200 · CommentResource collection]
+
+    ACT -->|POST /tasks/task/comments| CV[StoreCommentRequest\nbody max 2000]
+    CV --> CVR{Valid?}
+    CVR -->|No| CVE[422]
+    CVR -->|Yes| CA{authorize create\nvia task ownership}
+    CA -->|No| CAF[403]
+    CA -->|Yes| CC[task→comments→create\nuser_id = auth user]
+    CC --> CR[201 · CommentResource]
+
+    ACT -->|PUT /comments/id shallow| UA{authorize update?\ncomment owner only}
+    UA -->|No| UF[403]
+    UA -->|Yes| UV[UpdateCommentRequest\nbody sometimes]
+    UV --> UT[comment→update]
+    UT --> UR[200 · CommentResource]
+
+    ACT -->|DELETE /comments/id shallow| DA{authorize delete?\ncomment owner only}
+    DA -->|No| DF[403]
+    DA -->|Yes| DD[comment→delete]
+    DD --> DR[200 · Comment deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 10 Attachments -->
+  <section class="feature" id="attachments">
+    <div class="feature-header">
+      <div class="feature-icon ic-attach">📎</div>
+      <div class="feature-meta">
+        <h2>10 — File Attachments</h2>
+        <p>Upload files up to 10 MB per task. Files stored on local disk. Public URL served via storage symlink.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tasks/{task}/attachments</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/attachments · multipart</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/tasks/{task}/attachments/{id}</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /tasks/task/attachments| GA{authorize view task?}
+    GA -->|No| GF[403]
+    GA -->|Yes| GQ[task→attachments→get]
+    GQ --> GR[200 · AttachmentResource\nwith public URL via asset]
+
+    ACT -->|POST /tasks/task/attachments\nmultipart form-data| UFV[Validate file\nrequired · max 10 MB]
+    UFV --> UFR{Valid?}
+    UFR -->|No| UFE[422 File too large or missing]
+    UFR -->|Yes| UFA{authorize create\nvia task ownership}
+    UFA -->|No| UFAF[403]
+    UFA -->|Yes| UFS[Store file to disk\nstorage/app/attachments/task-id/]
+    UFS --> UFDB[task→attachments→create\npath · original_name · size · mime_type]
+    UFDB --> UFR2[201 · AttachmentResource]
+
+    ACT -->|DELETE /tasks/task/attachments/id| DA{authorize delete?}
+    DA -->|No| DF[403]
+    DA -->|Yes| DST[Storage::delete file\nfrom local disk]
+    DST --> DDB[attachment→delete record]
+    DDB --> DR[200 · Attachment deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 11 Subtasks -->
+  <section class="feature" id="subtasks">
+    <div class="feature-header">
+      <div class="feature-icon ic-subtasks">✅</div>
+      <div class="feature-meta">
+        <h2>11 — Subtasks / Checklists</h2>
+        <p>Ordered checklist items under a task. Supports toggle, reorder, and shallow update/delete.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tasks/{task}/subtasks</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/subtasks</span>
+      <span class="ep"><span class="method put">PUT</span>/api/subtasks/{id}</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/subtasks/{id}</span>
+      <span class="ep"><span class="method patch">PATCH</span>/api/subtasks/{id}/toggle</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/subtasks/reorder</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /tasks/task/subtasks| GA{authorize viewAny\nSubtask · task}
+    GA -->|No| GF[403]
+    GA -->|Yes| GQ[task→subtasks\norderBy order then id]
+    GQ --> GM[Compute meta\ntotal · completed counts]
+    GM --> GR[200 · SubtaskResource collection + meta]
+
+    ACT -->|POST /tasks/task/subtasks| CV[StoreSubtaskRequest\ntitle required · order optional]
+    CV --> CVR{Valid?}
+    CVR -->|No| CVE[422]
+    CVR -->|Yes| CA{authorize create\nSubtask · task}
+    CA -->|No| CAF[403]
+    CA -->|Yes| CO{order provided?}
+    CO -->|No| CAO[Auto-assign\nmax current order + 1]
+    CO -->|Yes| CUO[Use provided order]
+    CAO --> CC[task→subtasks→create]
+    CUO --> CC
+    CC --> CR[201 · SubtaskResource]
+
+    ACT -->|PATCH /subtasks/id/toggle| TA{authorize update\nvia subtask→task→user_id}
+    TA -->|No| TF[403]
+    TA -->|Yes| TX[DB::transaction\nis_completed = NOT is_completed]
+    TX --> TR{Result}
+    TR -->|true|  TC1[200 · Subtask completed]
+    TR -->|false| TC2[200 · Subtask uncompleted]
+
+    ACT -->|POST /tasks/task/subtasks/reorder| RA{authorize update task}
+    RA -->|No| RF[403]
+    RA -->|Yes| RV[Validate subtask_ids array]
+    RV --> RL[Loop: update order\nbased on array index position]
+    RL --> RR[200 · Subtasks reordered]
+
+    ACT -->|PUT /subtasks/id| UA{authorize update?}
+    UA -->|No| UF[403]
+    UA -->|Yes| UV[UpdateSubtaskRequest\ntitle · order sometimes]
+    UV --> UT[subtask→update]
+    UT --> UR[200 · SubtaskResource]
+
+    ACT -->|DELETE /subtasks/id| DA{authorize delete?}
+    DA -->|No| DF[403]
+    DA -->|Yes| DD[subtask→delete]
+    DD --> DR[200 · Subtask deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 12 Time Tracking -->
+  <section class="feature" id="timelogs">
+    <div class="feature-header">
+      <div class="feature-icon ic-timelog">⏱️</div>
+      <div class="feature-meta">
+        <h2>12 — Time Tracking</h2>
+        <p>Start/stop timers or log manual time entries per task. Duration is auto-calculated on stop.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">GET</span>/api/tasks/{task}/time-logs</span>
+      <span class="ep"><span class="method post">POST</span>/api/tasks/{task}/time-logs</span>
+      <span class="ep"><span class="method patch">PATCH</span>/api/time-logs/{id}/stop</span>
+      <span class="ep"><span class="method delete">DELETE</span>/api/time-logs/{id}</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([Client]) --> MW[auth:sanctum]
+    MW --> ACT{Action}
+
+    ACT -->|GET /tasks/task/time-logs| GA{authorize viewAny\nTimeLog · task}
+    GA -->|No| GF[403]
+    GA -->|Yes| GQ[task→timeLogs→get]
+    GQ --> GT[Sum duration_minutes\nfor total_minutes]
+    GT --> GR[200 · TimeLogResource collection + total_minutes]
+
+    ACT -->|POST /tasks/task/time-logs| CV[StoreTimeLogRequest\nstarted_at nullable · ended_at after started_at\nnote max 500]
+    CV --> CVR{Valid?}
+    CVR -->|No| CVE[422]
+    CVR -->|Yes| CA{authorize create\nTimeLog · task}
+    CA -->|No| CAF[403]
+    CA -->|Yes| CE{ended_at\nprovided?}
+
+    CE -->|No — Start Timer| ST[started_at = now\nended_at = null\nduration_minutes = null\nis_active = true]
+    CE -->|Yes — Manual Entry| ME[Calculate duration_minutes\nstarted_at→diffInMinutes ended_at]
+
+    ST --> SC[timeLogs→create]
+    ME --> SC
+    SC --> SR[201 · TimeLogResource]
+
+    ACT -->|PATCH /time-logs/id/stop| SPA{authorize update?\nowner only}
+    SPA -->|No| SPF[403]
+    SPA -->|Yes| SPG{ended_at\nalready set?}
+    SPG -->|Yes| SPE[422 · Timer already stopped]
+    SPG -->|No| SPU[ended_at = now\nduration_minutes = round\nstarted_at→diffInMinutes now]
+    SPU --> SPR[200 · TimeLogResource · is_active = false]
+
+    ACT -->|DELETE /time-logs/id| DA{authorize delete?\nowner only}
+    DA -->|No| DF[403]
+    DA -->|Yes| DD[timeLog→delete]
+    DD --> DR[200 · Time log deleted]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 13 Scheduler -->
+  <section class="feature" id="scheduler">
+    <div class="feature-header">
+      <div class="feature-icon ic-scheduler">🕗</div>
+      <div class="feature-meta">
+        <h2>13 — Due Date Reminder Scheduler</h2>
+        <p>Runs daily at 08:00 via Laravel Scheduler. Finds tasks due tomorrow and logs a reminder per task.</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method get">CMD</span>php artisan tasks:send-due-date-reminders</span>
+      <span class="ep"><span class="method get">CRON</span>* * * * * php artisan schedule:run</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    CRON([Cron · every minute]) -->|* * * * *| SR[php artisan schedule:run]
+    SR --> TC{Time = 08:00?}
+    TC -->|No| NOP[No-op · exit]
+    TC -->|Yes| CMD[tasks:send-due-date-reminders\nartisan command executes]
+
+    CMD --> QR[Query tasks where\ndue_date = tomorrow\nAND status != completed]
+    QR --> EL[Eager-load user relation\nper task]
+    EL --> FC{Any tasks found?}
+    FC -->|None| DONE[Command exits · nothing to log]
+    FC -->|Yes| LOOP[Loop over each task]
+
+    LOOP --> LG[Log::info Reminder\nuser.name · task.title · due_date]
+    LG --> NXT{More tasks?}
+    NXT -->|Yes| LOOP
+    NXT -->|No| EXIT[Command exits]
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- 14 Welcome Email Queue -->
+  <section class="feature" id="queue">
+    <div class="feature-header">
+      <div class="feature-icon ic-queue">📨</div>
+      <div class="feature-meta">
+        <h2>14 — Welcome Email Queue &amp; Job</h2>
+        <p>On registration, a queued job sends a markdown welcome email. Behavior differs between sync (tests) and async (production).</p>
+      </div>
+    </div>
+    <div class="endpoints">
+      <span class="ep"><span class="method post">POST</span>/api/auth/register · triggers job dispatch</span>
+      <span class="ep"><span class="method get">CMD</span>php artisan queue:work</span>
+    </div>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    A([User registers]) --> AC[AuthController::register]
+    AC --> UC[User::create]
+    UC --> JD[SendWelcomeMail::dispatch user]
+    JD --> QC{QUEUE_CONNECTION\nenv value}
+
+    QC -->|sync — test env| SI[Job runs immediately\nin same process]
+    QC -->|database| DQ[Job written to jobs table]
+    QC -->|redis| RQ[Job pushed to Redis queue]
+
+    DQ --> QW[php artisan queue:work\npicks up job]
+    RQ --> QW
+
+    SI --> JH[SendWelcomeMail::handle]
+    QW --> JH
+
+    JH --> MS[Mail::to user.email\n→ send WelcomeMail markdown]
+    MS --> MC{MAIL_MAILER\nenv value}
+
+    MC -->|array — test| MA[Email captured in memory\nnot actually sent]
+    MC -->|smtp| MB[Sent via SMTP server]
+    MC -->|ses| MC2[Sent via AWS SES]
+
+    AC --> TK[createToken auth_token]
+    TK --> RS[201 · user + token returned to client]
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Laravel Task Manager API — Feature Flowcharts &nbsp;·&nbsp; Generated with Claude Code
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2e3354',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#6c63ff',
+      lineColor: '#6c63ff',
+      secondaryColor: '#1a1d27',
+      tertiaryColor: '#22263a',
+      background: '#1a1d27',
+      mainBkg: '#22263a',
+      nodeBorder: '#6c63ff',
+      clusterBkg: '#1a1d27',
+      titleColor: '#e2e8f0',
+      edgeLabelBackground: '#22263a',
+      fontFamily: 'Segoe UI, system-ui, sans-serif',
+      fontSize: '13px'
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+      useMaxWidth: true
+    }
+  });
+</script>
+</body>
+</html>

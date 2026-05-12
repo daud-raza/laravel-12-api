@@ -4,26 +4,58 @@ namespace App\Observers;
 
 use App\Events\TaskCompleted;
 use App\Models\Task;
+use Illuminate\Support\Carbon;
 
 class TaskObserver
 {
     public function updated(Task $task): void
     {
-        // When status changes to completed, stamp completed_at and fire event
         if ($task->wasChanged('status') && $task->status === 'completed') {
             $task->timestamps = false;
             $task->completed_at = now();
-            $task->saveQuietly(); // avoids re-triggering this observer
+            $task->saveQuietly();
 
             TaskCompleted::dispatch($task);
+
+            $this->createNextRecurrence($task);
         }
 
-        // When status changes away from completed, clear the timestamp
         if ($task->wasChanged('status') && $task->status !== 'completed') {
             $task->timestamps = false;
             $task->completed_at = null;
             $task->saveQuietly();
         }
+    }
+
+    private function createNextRecurrence(Task $task): void
+    {
+        if (! $task->is_recurring || ! $task->recurrence_type || ! $task->due_date) {
+            return;
+        }
+
+        $nextDueDate = match ($task->recurrence_type) {
+            'daily'   => $task->due_date->copy()->addDay(),
+            'weekly'  => $task->due_date->copy()->addWeek(),
+            'monthly' => $task->due_date->copy()->addMonth(),
+        };
+
+        if ($task->recurrence_ends_at && $nextDueDate->gt($task->recurrence_ends_at)) {
+            return;
+        }
+
+        Task::create([
+            'user_id'            => $task->user_id,
+            'category_id'        => $task->category_id,
+            'title'              => $task->title,
+            'description'        => $task->description,
+            'status'             => 'pending',
+            'priority'           => $task->priority,
+            'is_pinned'          => false,
+            'is_recurring'       => true,
+            'recurrence_type'    => $task->recurrence_type,
+            'recurrence_ends_at' => $task->recurrence_ends_at,
+            'due_date'           => $nextDueDate,
+        ]);
     }
 
     public function created(Task $task): void {}

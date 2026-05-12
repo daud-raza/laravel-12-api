@@ -21,13 +21,20 @@ class Task extends Model
         'description',
         'status',
         'priority',
+        'is_pinned',
+        'is_recurring',
+        'recurrence_type',
+        'recurrence_ends_at',
         'due_date',
         'completed_at',
     ];
 
     protected $casts = [
-        'due_date'     => 'date',
-        'completed_at' => 'datetime',
+        'due_date'           => 'date',
+        'completed_at'       => 'datetime',
+        'recurrence_ends_at' => 'date',
+        'is_pinned'          => 'boolean',
+        'is_recurring'       => 'boolean',
     ];
 
     // ── Query Scopes ──────────────────────────────────────────────
@@ -73,5 +80,15 @@ class Task extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    public function subtasks(): HasMany
+    {
+        return $this->hasMany(Subtask::class)->orderBy('order');
+    }
+
+    public function timeLogs(): HasMany
+    {
+        return $this->hasMany(TimeLog::class)->latest();
     }
 }

@@ -25,7 +25,7 @@ class CategoryController extends Controller
                 ->get();
 
             return response()->json([
-                'message'    => 'Categories fetched successfully',
+                'message'    => 'Categories fetched successfully',  
                 'categories' => CategoryResource::collection($categories),
             ]);
         } catch (\Throwable $e) {

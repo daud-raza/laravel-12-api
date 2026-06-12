@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class SubtaskController extends Controller
 {
@@ -24,10 +25,10 @@ class SubtaskController extends Controller
             $subtasks = $task->subtasks()->orderBy('order')->orderBy('id')->get();
 
             return response()->json([
-                'message'  => 'Subtasks fetched successfully',
-                'data'     => SubtaskResource::collection($subtasks),
-                'meta'     => [
-                    'total'     => $subtasks->count(),
+                'message' => 'Subtasks fetched successfully',
+                'data' => SubtaskResource::collection($subtasks),
+                'meta' => [
+                    'total' => $subtasks->count(),
                     'completed' => $subtasks->where('is_completed', true)->count(),
                 ],
             ]);
@@ -35,6 +36,7 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'You do not have permission to view subtasks for this task.'], 403);
         } catch (\Throwable $e) {
             Log::error('Failed to fetch subtasks', ['task_id' => $task->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while fetching subtasks.'], 500);
         }
     }
@@ -61,6 +63,7 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'You do not have permission to add subtasks to this task.'], 403);
         } catch (\Throwable $e) {
             Log::error('Failed to create subtask', ['task_id' => $task->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while creating the subtask.'], 500);
         }
     }
@@ -80,6 +83,7 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'You do not have permission to update this subtask.'], 403);
         } catch (\Throwable $e) {
             Log::error('Failed to update subtask', ['subtask_id' => $subtask->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while updating the subtask.'], 500);
         }
     }
@@ -96,6 +100,7 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'You do not have permission to delete this subtask.'], 403);
         } catch (\Throwable $e) {
             Log::error('Failed to delete subtask', ['subtask_id' => $subtask->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while deleting the subtask.'], 500);
         }
     }
@@ -105,7 +110,7 @@ class SubtaskController extends Controller
         try {
             $this->authorize('update', $subtask);
 
-            DB::transaction(fn () => $subtask->update(['is_completed' => !$subtask->is_completed]));
+            DB::transaction(fn () => $subtask->update(['is_completed' => ! $subtask->is_completed]));
 
             $status = $subtask->is_completed ? 'completed' : 'uncompleted';
 
@@ -117,6 +122,7 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'You do not have permission to update this subtask.'], 403);
         } catch (\Throwable $e) {
             Log::error('Failed to toggle subtask', ['subtask_id' => $subtask->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while toggling the subtask.'], 500);
         }
     }
@@ -127,7 +133,7 @@ class SubtaskController extends Controller
             $this->authorize('create', [Subtask::class, $task]);
 
             $request->validate([
-                'subtask_ids'   => ['required', 'array', 'min:1'],
+                'subtask_ids' => ['required', 'array', 'min:1'],
                 'subtask_ids.*' => ['integer', 'exists:subtasks,id'],
             ]);
 
@@ -140,8 +146,14 @@ class SubtaskController extends Controller
             return response()->json(['message' => 'Subtasks reordered successfully']);
         } catch (AuthorizationException) {
             return response()->json(['message' => 'You do not have permission to reorder subtasks for this task.'], 403);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Throwable $e) {
             Log::error('Failed to reorder subtasks', ['task_id' => $task->id, 'error' => $e]);
+
             return response()->json(['message' => 'Something went wrong while reordering subtasks.'], 500);
         }
     }

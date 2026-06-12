@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -22,8 +23,8 @@ class AuthController extends Controller
         try {
             $user = DB::transaction(function () use ($request) {
                 return User::create([
-                    'name'     => $request->name,
-                    'email'    => $request->email,
+                    'name' => $request->name,
+                    'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
             });
@@ -34,11 +35,12 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'User registered successfully',
-                'user'    => new UserResource($user),
-                'token'   => $token,
+                'user' => new UserResource($user),
+                'token' => $token,
             ], 201);
         } catch (\Throwable $e) {
             Log::error('Registration failed', ['email' => $request->email, 'error' => $e]);
+
             return response()->json(['message' => 'Registration failed. Please try again.'], 500);
         }
     }
@@ -46,23 +48,24 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         try {
-            if (!Auth::attempt($request->only('email', 'password'))) {
+            if (! Auth::attempt($request->only('email', 'password'))) {
                 return response()->json([
                     'message' => 'The email or password you entered is incorrect.',
                 ], 401);
             }
 
-            /** @var \App\Models\User $user */
-            $user  = Auth::user();
+            /** @var User $user */
+            $user = Auth::user();
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login successful',
-                'user'    => new UserResource($user),
-                'token'   => $token,
+                'user' => new UserResource($user),
+                'token' => $token,
             ]);
         } catch (\Throwable $e) {
             Log::error('Login failed', ['email' => $request->email, 'error' => $e]);
+
             return response()->json(['message' => 'Login failed. Please try again.'], 500);
         }
     }
@@ -70,13 +73,19 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            /** @var \Laravel\Sanctum\PersonalAccessToken $token */
             $token = $request->user()->currentAccessToken();
-            $token->delete();
+
+            // currentAccessToken() returns a TransientToken when the request is
+            // authenticated by a guard other than a real personal access token
+            // (e.g. actingAs in tests). Only persisted tokens can be deleted.
+            if ($token instanceof PersonalAccessToken) {
+                $token->delete();
+            }
 
             return response()->json(['message' => 'Logged out successfully']);
         } catch (\Throwable $e) {
             Log::error('Logout failed', ['error' => $e]);
+
             return response()->json(['message' => 'Logout failed. Please try again.'], 500);
         }
     }
@@ -89,6 +98,7 @@ class AuthController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Failed to fetch user profile', ['error' => $e]);
+
             return response()->json(['message' => 'Failed to fetch your profile. Please try again.'], 500);
         }
     }

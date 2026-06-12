@@ -30,11 +30,11 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'due_date'           => 'date',
-        'completed_at'       => 'datetime',
+        'due_date' => 'date',
+        'completed_at' => 'datetime',
         'recurrence_ends_at' => 'date',
-        'is_pinned'          => 'boolean',
-        'is_recurring'       => 'boolean',
+        'is_pinned' => 'boolean',
+        'is_recurring' => 'boolean',
     ];
 
     // ── Query Scopes ──────────────────────────────────────────────
@@ -42,7 +42,7 @@ class Task extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('due_date', '<', now()->toDateString())
-                     ->where('status', '!=', 'completed');
+            ->where('status', '!=', 'completed');
     }
 
     public function scopeByPriority(Builder $query, string $priority): Builder

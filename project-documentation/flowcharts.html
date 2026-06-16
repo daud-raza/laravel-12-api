@@ -284,34 +284,34 @@
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> RL[Rate Limiter\n10 req / min per IP]
-    RL --> RT{Throttled?}
-    RT -->|Yes| D[429 Too Many Attempts]
-    RT -->|No| E{Action}
+    A(["Client"]) --> RL["Rate Limiter<br/>10 req / min per IP"]
+    RL --> RT{"Throttled?"}
+    RT -->|Yes| D["429 Too Many Attempts"]
+    RT -->|No| E{"Action"}
 
-    E -->|Register| RV[Validate\nname · email · password]
-    RV --> RVR{Valid?}
-    RVR -->|No| RVE[422 Validation Error]
-    RVR -->|Yes| RC[User::create]
-    RC --> RQ[SendWelcomeMail::dispatch\nQueued Job]
-    RC --> RT2[createToken auth_token]
-    RT2 --> RS[201 · user + token]
+    E -->|Register| RV["Validate<br/>name · email · password"]
+    RV --> RVR{"Valid?"}
+    RVR -->|No| RVE["422 Validation Error"]
+    RVR -->|Yes| RC["User::create"]
+    RC --> RQ["SendWelcomeMail::dispatch<br/>Queued Job"]
+    RC --> RT2["createToken auth_token"]
+    RT2 --> RS["201 · user + token"]
 
-    E -->|Login| LV[Validate\nemail · password]
-    LV --> LVR{Valid?}
-    LVR -->|No| LVE[422 Validation Error]
-    LVR -->|Yes| LA{Auth::attempt?}
-    LA -->|Fail| LF[401 Invalid credentials]
-    LA -->|Pass| LT[createToken auth_token]
-    LT --> LS[200 · user + token]
+    E -->|Login| LV["Validate<br/>email · password"]
+    LV --> LVR{"Valid?"}
+    LVR -->|No| LVE["422 Validation Error"]
+    LVR -->|Yes| LA{"Auth::attempt?"}
+    LA -->|Fail| LF["401 Invalid credentials"]
+    LA -->|Pass| LT["createToken auth_token"]
+    LT --> LS["200 · user + token"]
 
-    E -->|Logout| LO[auth:sanctum verify]
-    LO --> LOT[Delete current token]
-    LOT --> LOM[200 · Logged out]
+    E -->|Logout| LO["auth:sanctum verify"]
+    LO --> LOT["Delete current token"]
+    LOT --> LOM["200 · Logged out"]
 
-    E -->|Me| ME[auth:sanctum verify]
-    ME --> MEU[Return auth user]
-    MEU --> MER[200 · UserResource]
+    E -->|Me| ME["auth:sanctum verify"]
+    ME --> MEU["Return auth user"]
+    MEU --> MER["200 · UserResource"]
       </div>
     </div>
   </section>
@@ -337,41 +337,41 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum + throttle:api]
-    MW --> AUTH{Authenticated?}
-    AUTH -->|No| U[401 Unauthenticated]
-    AUTH -->|Yes| ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum + throttle:api"]
+    MW --> AUTH{"Authenticated?"}
+    AUTH -->|No| U["401 Unauthenticated"]
+    AUTH -->|Yes| ACT{"Action"}
 
-    ACT -->|GET /tasks| F[Apply Filters\nstatus · priority · category_id · search]
-    F --> P[orderByDesc is_pinned\nthen orderByDesc created_at\npaginate 10]
-    P --> PR[200 · collection + meta\ncurrent_page · last_page · total]
+    ACT -->|GET /tasks| F["Apply Filters<br/>status · priority · category_id · search"]
+    F --> P["orderByDesc is_pinned<br/>then orderByDesc created_at<br/>paginate 10"]
+    P --> PR["200 · collection + meta<br/>current_page · last_page · total"]
 
-    ACT -->|POST /tasks| SV[StoreTaskRequest\nValidate all fields]
-    SV --> SVR{Valid?}
-    SVR -->|No| SVE[422 Validation Error]
-    SVR -->|Yes| SC[DB::transaction\nuser→tasks→create]
-    SC --> SL[Load category + tags]
-    SL --> SR[201 · TaskResource]
+    ACT -->|POST /tasks| SV["StoreTaskRequest<br/>Validate all fields"]
+    SV --> SVR{"Valid?"}
+    SVR -->|No| SVE["422 Validation Error"]
+    SVR -->|Yes| SC["DB::transaction<br/>user→tasks→create"]
+    SC --> SL["Load category + tags"]
+    SL --> SR["201 · TaskResource"]
 
-    ACT -->|GET /tasks/id| SH[Route Model Binding]
-    SH --> SHA{authorize view?}
-    SHA -->|No| SHF[403 Forbidden]
-    SHA -->|Yes| SHL[Load category · tags · comments\nattachments · subtasks · timeLogs]
-    SHL --> SHR[200 · TaskResource full]
+    ACT -->|GET /tasks/id| SH["Route Model Binding"]
+    SH --> SHA{"authorize view?"}
+    SHA -->|No| SHF["403 Forbidden"]
+    SHA -->|Yes| SHL["Load category · tags · comments<br/>attachments · subtasks · timeLogs"]
+    SHL --> SHR["200 · TaskResource full"]
 
-    ACT -->|PUT /tasks/id| UV[UpdateTaskRequest\nValidate sometimes fields]
-    UV --> UVR{Valid?}
-    UVR -->|No| UVE[422 Validation Error]
-    UVR -->|Yes| UA{authorize update?}
-    UA -->|No| UAF[403 Forbidden]
-    UA -->|Yes| UT[DB::transaction\ntask→update]
-    UT --> UO[TaskObserver fires]
-    UO --> UR[200 · TaskResource]
+    ACT -->|PUT /tasks/id| UV["UpdateTaskRequest<br/>Validate sometimes fields"]
+    UV --> UVR{"Valid?"}
+    UVR -->|No| UVE["422 Validation Error"]
+    UVR -->|Yes| UA{"authorize update?"}
+    UA -->|No| UAF["403 Forbidden"]
+    UA -->|Yes| UT["DB::transaction<br/>task→update"]
+    UT --> UO["TaskObserver fires"]
+    UO --> UR["200 · TaskResource"]
 
-    ACT -->|DELETE /tasks/id| DA{authorize delete?}
-    DA -->|No| DAF[403 Forbidden]
-    DA -->|Yes| DD[DB::transaction\ntask→delete · SoftDelete]
-    DD --> DR[200 · Task deleted]
+    ACT -->|DELETE /tasks/id| DA{"authorize delete?"}
+    DA -->|No| DAF["403 Forbidden"]
+    DA -->|Yes| DD["DB::transaction<br/>task→delete · SoftDelete"]
+    DD --> DR["200 · Task deleted"]
       </div>
     </div>
   </section>
@@ -393,35 +393,35 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) -->|PUT /tasks/id\nstatus: completed| TC[TaskController::update]
-    TC --> TX[DB::transaction\ntask→update]
-    TX --> EV[Eloquent fires\nupdated event]
-    EV --> OB[TaskObserver::updated]
+    A(["Client"]) -->|"PUT /tasks/id<br/>status: completed"| TC["TaskController::update"]
+    TC --> TX["DB::transaction<br/>task→update"]
+    TX --> EV["Eloquent fires<br/>updated event"]
+    EV --> OB["TaskObserver::updated"]
 
-    OB --> SC{status changed\nTO completed?}
-    SC -->|No| SA{status changed\nAWAY from completed?}
-    SA -->|Yes| CL[completed_at = null\nsaveQuietly · timestamps=false]
-    SA -->|No| NO[No-op · exit]
+    OB --> SC{"status changed<br/>TO completed?"}
+    SC -->|No| SA{"status changed<br/>AWAY from completed?"}
+    SA -->|Yes| CL["completed_at = null<br/>saveQuietly · timestamps=false"]
+    SA -->|No| NO["No-op · exit"]
 
-    SC -->|Yes| ST[completed_at = now\nsaveQuietly · timestamps=false]
-    ST --> EV2[TaskCompleted::dispatch task]
-    EV2 --> LOG[LogTaskCompleted::handle\nLog::info · task_id, title, user_id]
+    SC -->|Yes| ST["completed_at = now<br/>saveQuietly · timestamps=false"]
+    ST --> EV2["TaskCompleted::dispatch task"]
+    EV2 --> LOG["LogTaskCompleted::handle<br/>Log::info · task_id, title, user_id"]
 
-    ST --> RG{is_recurring AND\nrecurrence_type set AND\ndue_date set?}
-    RG -->|No| END[End]
-    RG -->|Yes| RT{recurrence_type}
+    ST --> RG{"is_recurring AND<br/>recurrence_type set AND<br/>due_date set?"}
+    RG -->|No| END["End"]
+    RG -->|Yes| RT{"recurrence_type"}
 
-    RT -->|daily|  ND1[nextDueDate = due_date + 1 day]
-    RT -->|weekly| ND2[nextDueDate = due_date + 1 week]
-    RT -->|monthly|ND3[nextDueDate = due_date + 1 month]
+    RT -->|daily| ND1["nextDueDate = due_date + 1 day"]
+    RT -->|weekly| ND2["nextDueDate = due_date + 1 week"]
+    RT -->|monthly|ND3["nextDueDate = due_date + 1 month"]
 
-    ND1 --> EXP{nextDueDate >\nrecurrence_ends_at?}
+    ND1 --> EXP{"nextDueDate ><br/>recurrence_ends_at?"}
     ND2 --> EXP
     ND3 --> EXP
 
-    EXP -->|Yes — expired| STOP[Stop · no new task created]
-    EXP -->|No| NC[Task::create\nstatus=pending · is_pinned=false\nnextDueDate · same user/category/priority]
-    NC --> NR[New recurring task created]
+    EXP -->|Yes — expired| STOP["Stop · no new task created"]
+    EXP -->|No| NC["Task::create<br/>status=pending · is_pinned=false<br/>nextDueDate · same user/category/priority"]
+    NC --> NR["New recurring task created"]
       </div>
     </div>
   </section>
@@ -444,19 +444,19 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) -->|POST /api/tasks/id/pin| MW[auth:sanctum]
-    MW --> RMB[Route Model Binding\nTask::findOrFail]
-    RMB --> AZ{authorize update?}
-    AZ -->|No| F[403 Forbidden]
-    AZ -->|Yes| TX[DB::transaction\nis_pinned = NOT is_pinned]
-    TX --> RS{Result}
-    RS -->|is_pinned = true|  P1[200 · Task pinned successfully\n+ TaskResource]
-    RS -->|is_pinned = false| P2[200 · Task unpinned successfully\n+ TaskResource]
+    A(["Client"]) -->|POST /api/tasks/id/pin| MW["auth:sanctum"]
+    MW --> RMB["Route Model Binding<br/>Task::findOrFail"]
+    RMB --> AZ{"authorize update?"}
+    AZ -->|No| F["403 Forbidden"]
+    AZ -->|Yes| TX["DB::transaction<br/>is_pinned = NOT is_pinned"]
+    TX --> RS{"Result"}
+    RS -->|is_pinned = true| P1["200 · Task pinned successfully<br/>+ TaskResource"]
+    RS -->|is_pinned = false| P2["200 · Task unpinned successfully<br/>+ TaskResource"]
 
-    B([GET /api/tasks]) --> Q[Query Builder\norderByDesc is_pinned]
-    Q --> Q2[then orderByDesc created_at]
-    Q2 --> Q3[paginate 10]
-    Q3 --> Q4[Pinned tasks always appear first]
+    B(["GET /api/tasks"]) --> Q["Query Builder<br/>orderByDesc is_pinned"]
+    Q --> Q2["then orderByDesc created_at"]
+    Q2 --> Q3["paginate 10"]
+    Q3 --> Q4["Pinned tasks always appear first"]
       </div>
     </div>
   </section>
@@ -478,22 +478,22 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) -->|POST /api/tasks/bulk| MW[auth:sanctum]
-    MW --> BV[BulkTaskRequest Validate\ntask_ids array · each exists in tasks\naction enum · value required unless delete]
-    BV --> VR{Valid?}
-    VR -->|No| VE[422 Validation Error]
-    VR -->|Yes| FT[Task::whereIn task_ids\n.where user_id = auth user\n.get]
-    FT --> FE{Tasks found?}
-    FE -->|None| NF[404 · No matching tasks found\nCannot act on other users tasks]
-    FE -->|Found| TX[DB::transaction\nloop over tasks]
+    A(["Client"]) -->|POST /api/tasks/bulk| MW["auth:sanctum"]
+    MW --> BV["BulkTaskRequest Validate<br/>task_ids array · each exists in tasks<br/>action enum · value required unless delete"]
+    BV --> VR{"Valid?"}
+    VR -->|No| VE["422 Validation Error"]
+    VR -->|Yes| FT["Task::whereIn task_ids<br/>.where user_id = auth user<br/>.get"]
+    FT --> FE{"Tasks found?"}
+    FE -->|None| NF["404 · No matching tasks found<br/>Cannot act on other users tasks"]
+    FE -->|Found| TX["DB::transaction<br/>loop over tasks"]
 
-    TX --> AC{action}
-    AC -->|update_status|   US[task→update · status = value]
-    AC -->|update_priority| UP[task→update · priority = value]
-    AC -->|update_category| UC[task→update · category_id = value]
-    AC -->|delete|          UD[task→delete · SoftDelete]
+    TX --> AC{"action"}
+    AC -->|update_status| US["task→update · status = value"]
+    AC -->|update_priority| UP["task→update · priority = value"]
+    AC -->|update_category| UC["task→update · category_id = value"]
+    AC -->|delete| UD["task→delete · SoftDelete"]
 
-    US --> OK[200 · N task s updated successfully]
+    US --> OK["200 · N task s updated successfully"]
     UP --> OK
     UC --> OK
     UD --> OK
@@ -519,20 +519,20 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) -->|DELETE /api/tasks/id| DA{authorize delete?}
-    DA -->|No| DF[403 Forbidden]
-    DA -->|Yes| DD[DB::transaction\ntask→delete]
-    DD --> DS[deleted_at = now\nTask hidden from normal queries\nsubtasks · comments cascade-delete]
-    DS --> DM[200 · Task deleted successfully]
+    A(["Client"]) -->|DELETE /api/tasks/id| DA{"authorize delete?"}
+    DA -->|No| DF["403 Forbidden"]
+    DA -->|Yes| DD["DB::transaction<br/>task→delete"]
+    DD --> DS["deleted_at = now<br/>Task hidden from normal queries<br/>subtasks · comments cascade-delete"]
+    DS --> DM["200 · Task deleted successfully"]
 
-    B([Client]) -->|POST /api/tasks/id/restore| RQ[Task::withTrashed\n→ findOrFail id]
-    RQ --> RF{Found?}
-    RF -->|No| RNF[404 · Task not found\nMay have been permanently deleted]
-    RF -->|Yes| RA{authorize restore?}
-    RA -->|No| RAF[403 Forbidden]
-    RA -->|Yes| RT[DB::transaction\ntask→restore]
-    RT --> RC[deleted_at = null\nTask visible in normal queries again]
-    RC --> RR[200 · Task restored + TaskResource]
+    B(["Client"]) -->|POST /api/tasks/id/restore| RQ["Task::withTrashed<br/>→ findOrFail id"]
+    RQ --> RF{"Found?"}
+    RF -->|No| RNF["404 · Task not found<br/>May have been permanently deleted"]
+    RF -->|Yes| RA{"authorize restore?"}
+    RA -->|No| RAF["403 Forbidden"]
+    RA -->|Yes| RT["DB::transaction<br/>task→restore"]
+    RT --> RC["deleted_at = null<br/>Task visible in normal queries again"]
+    RC --> RR["200 · Task restored + TaskResource"]
       </div>
     </div>
   </section>
@@ -558,34 +558,34 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /categories| GL[user→categories→get]
-    GL --> GR[200 · CategoryResource collection]
+    ACT -->|GET /categories| GL["user→categories→get"]
+    GL --> GR["200 · CategoryResource collection"]
 
-    ACT -->|POST /categories| CV[StoreCategoryRequest\nname required · color hex regex]
-    CV --> CVR{Valid?}
-    CVR -->|No| CVE[422 Validation Error]
-    CVR -->|Yes| CC[user→categories→create]
-    CC --> CR[201 · CategoryResource]
+    ACT -->|POST /categories| CV["StoreCategoryRequest<br/>name required · color hex regex"]
+    CV --> CVR{"Valid?"}
+    CVR -->|No| CVE["422 Validation Error"]
+    CVR -->|Yes| CC["user→categories→create"]
+    CC --> CR["201 · CategoryResource"]
 
-    ACT -->|GET /categories/id| SH[Route Model Binding]
-    SH --> SHA{authorize view?}
-    SHA -->|No| SHF[403]
-    SHA -->|Yes| SHR[200 · CategoryResource]
+    ACT -->|GET /categories/id| SH["Route Model Binding"]
+    SH --> SHA{"authorize view?"}
+    SHA -->|No| SHF["403"]
+    SHA -->|Yes| SHR["200 · CategoryResource"]
 
-    ACT -->|PUT /categories/id| UA{authorize update?}
-    UA -->|No| UF[403]
-    UA -->|Yes| UV[UpdateCategoryRequest\nname · color sometimes]
-    UV --> UT[category→update]
-    UT --> UR[200 · CategoryResource]
+    ACT -->|PUT /categories/id| UA{"authorize update?"}
+    UA -->|No| UF["403"]
+    UA -->|Yes| UV["UpdateCategoryRequest<br/>name · color sometimes"]
+    UV --> UT["category→update"]
+    UT --> UR["200 · CategoryResource"]
 
-    ACT -->|DELETE /categories/id| DA{authorize delete?}
-    DA -->|No| DF[403]
-    DA -->|Yes| DD[category→delete]
-    DD --> DN[tasks · category_id → null\nnullOnDelete constraint]
-    DN --> DR[200 · Category deleted]
+    ACT -->|DELETE /categories/id| DA{"authorize delete?"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DD["category→delete"]
+    DD --> DN["tasks · category_id → null<br/>nullOnDelete constraint"]
+    DN --> DR["200 · Category deleted"]
       </div>
     </div>
   </section>
@@ -610,31 +610,31 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /tags| GL[user→tags→get]
-    GL --> GR[200 · TagResource collection]
+    ACT -->|GET /tags| GL["user→tags→get"]
+    GL --> GR["200 · TagResource collection"]
 
-    ACT -->|POST /tags| TV[StoreTagRequest\nname max 50]
-    TV --> TVR{Valid?}
-    TVR -->|No| TVE[422]
-    TVR -->|Yes| TC[user→tags→create]
-    TC --> TS[booted creating hook\nStr::slug name → slug]
-    TS --> TR[201 · TagResource]
+    ACT -->|POST /tags| TV["StoreTagRequest<br/>name max 50"]
+    TV --> TVR{"Valid?"}
+    TVR -->|No| TVE["422"]
+    TVR -->|Yes| TC["user→tags→create"]
+    TC --> TS["booted creating hook<br/>Str::slug name → slug"]
+    TS --> TR["201 · TagResource"]
 
-    ACT -->|DELETE /tags/id| DA{authorize delete?\nowner only}
-    DA -->|No| DF[403]
-    DA -->|Yes| DD[tag→delete]
-    DD --> DN[Detached from all tasks\nvia pivot cascade]
-    DN --> DR[200 · Tag deleted]
+    ACT -->|DELETE /tags/id| DA{"authorize delete?<br/>owner only"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DD["tag→delete"]
+    DD --> DN["Detached from all tasks<br/>via pivot cascade"]
+    DN --> DR["200 · Tag deleted"]
 
-    ACT -->|POST /tasks/task/tags| STA{authorize update task?}
-    STA -->|No| STF[403]
-    STA -->|Yes| STV[Validate tag_ids array\nall belong to auth user]
-    STV --> STS[task→tags→sync tag_ids]
-    STS --> STN[Replaces ALL existing tags\non this task atomically]
-    STN --> STR[200 · Tags synced]
+    ACT -->|POST /tasks/task/tags| STA{"authorize update task?"}
+    STA -->|No| STF["403"]
+    STA -->|Yes| STV["Validate tag_ids array<br/>all belong to auth user"]
+    STV --> STS["task→tags→sync tag_ids"]
+    STS --> STN["Replaces ALL existing tags<br/>on this task atomically"]
+    STN --> STR["200 · Tags synced"]
       </div>
     </div>
   </section>
@@ -659,32 +659,32 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /tasks/task/comments| GA{authorize viewAny\nvia task ownership}
-    GA -->|No| GF[403]
-    GA -->|Yes| GQ[task→comments\nwith user · ordered latest first]
-    GQ --> GR[200 · CommentResource collection]
+    ACT -->|GET /tasks/task/comments| GA{"authorize viewAny<br/>via task ownership"}
+    GA -->|No| GF["403"]
+    GA -->|Yes| GQ["task→comments<br/>with user · ordered latest first"]
+    GQ --> GR["200 · CommentResource collection"]
 
-    ACT -->|POST /tasks/task/comments| CV[StoreCommentRequest\nbody max 2000]
-    CV --> CVR{Valid?}
-    CVR -->|No| CVE[422]
-    CVR -->|Yes| CA{authorize create\nvia task ownership}
-    CA -->|No| CAF[403]
-    CA -->|Yes| CC[task→comments→create\nuser_id = auth user]
-    CC --> CR[201 · CommentResource]
+    ACT -->|POST /tasks/task/comments| CV["StoreCommentRequest<br/>body max 2000"]
+    CV --> CVR{"Valid?"}
+    CVR -->|No| CVE["422"]
+    CVR -->|Yes| CA{"authorize create<br/>via task ownership"}
+    CA -->|No| CAF["403"]
+    CA -->|Yes| CC["task→comments→create<br/>user_id = auth user"]
+    CC --> CR["201 · CommentResource"]
 
-    ACT -->|PUT /comments/id shallow| UA{authorize update?\ncomment owner only}
-    UA -->|No| UF[403]
-    UA -->|Yes| UV[UpdateCommentRequest\nbody sometimes]
-    UV --> UT[comment→update]
-    UT --> UR[200 · CommentResource]
+    ACT -->|PUT /comments/id shallow| UA{"authorize update?<br/>comment owner only"}
+    UA -->|No| UF["403"]
+    UA -->|Yes| UV["UpdateCommentRequest<br/>body sometimes"]
+    UV --> UT["comment→update"]
+    UT --> UR["200 · CommentResource"]
 
-    ACT -->|DELETE /comments/id shallow| DA{authorize delete?\ncomment owner only}
-    DA -->|No| DF[403]
-    DA -->|Yes| DD[comment→delete]
-    DD --> DR[200 · Comment deleted]
+    ACT -->|DELETE /comments/id shallow| DA{"authorize delete?<br/>comment owner only"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DD["comment→delete"]
+    DD --> DR["200 · Comment deleted"]
       </div>
     </div>
   </section>
@@ -708,28 +708,28 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /tasks/task/attachments| GA{authorize view task?}
-    GA -->|No| GF[403]
-    GA -->|Yes| GQ[task→attachments→get]
-    GQ --> GR[200 · AttachmentResource\nwith public URL via asset]
+    ACT -->|GET /tasks/task/attachments| GA{"authorize view task?"}
+    GA -->|No| GF["403"]
+    GA -->|Yes| GQ["task→attachments→get"]
+    GQ --> GR["200 · AttachmentResource<br/>with public URL via asset"]
 
-    ACT -->|POST /tasks/task/attachments\nmultipart form-data| UFV[Validate file\nrequired · max 10 MB]
-    UFV --> UFR{Valid?}
-    UFR -->|No| UFE[422 File too large or missing]
-    UFR -->|Yes| UFA{authorize create\nvia task ownership}
-    UFA -->|No| UFAF[403]
-    UFA -->|Yes| UFS[Store file to disk\nstorage/app/attachments/task-id/]
-    UFS --> UFDB[task→attachments→create\npath · original_name · size · mime_type]
-    UFDB --> UFR2[201 · AttachmentResource]
+    ACT -->|"POST /tasks/task/attachments<br/>multipart form-data"| UFV["Validate file<br/>required · max 10 MB"]
+    UFV --> UFR{"Valid?"}
+    UFR -->|No| UFE["422 File too large or missing"]
+    UFR -->|Yes| UFA{"authorize create<br/>via task ownership"}
+    UFA -->|No| UFAF["403"]
+    UFA -->|Yes| UFS["Store file to disk<br/>storage/app/attachments/task-id/"]
+    UFS --> UFDB["task→attachments→create<br/>path · original_name · size · mime_type"]
+    UFDB --> UFR2["201 · AttachmentResource"]
 
-    ACT -->|DELETE /tasks/task/attachments/id| DA{authorize delete?}
-    DA -->|No| DF[403]
-    DA -->|Yes| DST[Storage::delete file\nfrom local disk]
-    DST --> DDB[attachment→delete record]
-    DDB --> DR[200 · Attachment deleted]
+    ACT -->|DELETE /tasks/task/attachments/id| DA{"authorize delete?"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DST["Storage::delete file<br/>from local disk"]
+    DST --> DDB["attachment→delete record"]
+    DDB --> DR["200 · Attachment deleted"]
       </div>
     </div>
   </section>
@@ -756,50 +756,50 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /tasks/task/subtasks| GA{authorize viewAny\nSubtask · task}
-    GA -->|No| GF[403]
-    GA -->|Yes| GQ[task→subtasks\norderBy order then id]
-    GQ --> GM[Compute meta\ntotal · completed counts]
-    GM --> GR[200 · SubtaskResource collection + meta]
+    ACT -->|GET /tasks/task/subtasks| GA{"authorize viewAny<br/>Subtask · task"}
+    GA -->|No| GF["403"]
+    GA -->|Yes| GQ["task→subtasks<br/>orderBy order then id"]
+    GQ --> GM["Compute meta<br/>total · completed counts"]
+    GM --> GR["200 · SubtaskResource collection + meta"]
 
-    ACT -->|POST /tasks/task/subtasks| CV[StoreSubtaskRequest\ntitle required · order optional]
-    CV --> CVR{Valid?}
-    CVR -->|No| CVE[422]
-    CVR -->|Yes| CA{authorize create\nSubtask · task}
-    CA -->|No| CAF[403]
-    CA -->|Yes| CO{order provided?}
-    CO -->|No| CAO[Auto-assign\nmax current order + 1]
-    CO -->|Yes| CUO[Use provided order]
-    CAO --> CC[task→subtasks→create]
+    ACT -->|POST /tasks/task/subtasks| CV["StoreSubtaskRequest<br/>title required · order optional"]
+    CV --> CVR{"Valid?"}
+    CVR -->|No| CVE["422"]
+    CVR -->|Yes| CA{"authorize create<br/>Subtask · task"}
+    CA -->|No| CAF["403"]
+    CA -->|Yes| CO{"order provided?"}
+    CO -->|No| CAO["Auto-assign<br/>max current order + 1"]
+    CO -->|Yes| CUO["Use provided order"]
+    CAO --> CC["task→subtasks→create"]
     CUO --> CC
-    CC --> CR[201 · SubtaskResource]
+    CC --> CR["201 · SubtaskResource"]
 
-    ACT -->|PATCH /subtasks/id/toggle| TA{authorize update\nvia subtask→task→user_id}
-    TA -->|No| TF[403]
-    TA -->|Yes| TX[DB::transaction\nis_completed = NOT is_completed]
-    TX --> TR{Result}
-    TR -->|true|  TC1[200 · Subtask completed]
-    TR -->|false| TC2[200 · Subtask uncompleted]
+    ACT -->|PATCH /subtasks/id/toggle| TA{"authorize update<br/>via subtask→task→user_id"}
+    TA -->|No| TF["403"]
+    TA -->|Yes| TX["DB::transaction<br/>is_completed = NOT is_completed"]
+    TX --> TR{"Result"}
+    TR -->|true| TC1["200 · Subtask completed"]
+    TR -->|false| TC2["200 · Subtask uncompleted"]
 
-    ACT -->|POST /tasks/task/subtasks/reorder| RA{authorize update task}
-    RA -->|No| RF[403]
-    RA -->|Yes| RV[Validate subtask_ids array]
-    RV --> RL[Loop: update order\nbased on array index position]
-    RL --> RR[200 · Subtasks reordered]
+    ACT -->|POST /tasks/task/subtasks/reorder| RA{"authorize update task"}
+    RA -->|No| RF["403"]
+    RA -->|Yes| RV["Validate subtask_ids array"]
+    RV --> RL["Loop: update order<br/>based on array index position"]
+    RL --> RR["200 · Subtasks reordered"]
 
-    ACT -->|PUT /subtasks/id| UA{authorize update?}
-    UA -->|No| UF[403]
-    UA -->|Yes| UV[UpdateSubtaskRequest\ntitle · order sometimes]
-    UV --> UT[subtask→update]
-    UT --> UR[200 · SubtaskResource]
+    ACT -->|PUT /subtasks/id| UA{"authorize update?"}
+    UA -->|No| UF["403"]
+    UA -->|Yes| UV["UpdateSubtaskRequest<br/>title · order sometimes"]
+    UV --> UT["subtask→update"]
+    UT --> UR["200 · SubtaskResource"]
 
-    ACT -->|DELETE /subtasks/id| DA{authorize delete?}
-    DA -->|No| DF[403]
-    DA -->|Yes| DD[subtask→delete]
-    DD --> DR[200 · Subtask deleted]
+    ACT -->|DELETE /subtasks/id| DA{"authorize delete?"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DD["subtask→delete"]
+    DD --> DR["200 · Subtask deleted"]
       </div>
     </div>
   </section>
@@ -824,40 +824,40 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([Client]) --> MW[auth:sanctum]
-    MW --> ACT{Action}
+    A(["Client"]) --> MW["auth:sanctum"]
+    MW --> ACT{"Action"}
 
-    ACT -->|GET /tasks/task/time-logs| GA{authorize viewAny\nTimeLog · task}
-    GA -->|No| GF[403]
-    GA -->|Yes| GQ[task→timeLogs→get]
-    GQ --> GT[Sum duration_minutes\nfor total_minutes]
-    GT --> GR[200 · TimeLogResource collection + total_minutes]
+    ACT -->|GET /tasks/task/time-logs| GA{"authorize viewAny<br/>TimeLog · task"}
+    GA -->|No| GF["403"]
+    GA -->|Yes| GQ["task→timeLogs→get"]
+    GQ --> GT["Sum duration_minutes<br/>for total_minutes"]
+    GT --> GR["200 · TimeLogResource collection + total_minutes"]
 
-    ACT -->|POST /tasks/task/time-logs| CV[StoreTimeLogRequest\nstarted_at nullable · ended_at after started_at\nnote max 500]
-    CV --> CVR{Valid?}
-    CVR -->|No| CVE[422]
-    CVR -->|Yes| CA{authorize create\nTimeLog · task}
-    CA -->|No| CAF[403]
-    CA -->|Yes| CE{ended_at\nprovided?}
+    ACT -->|POST /tasks/task/time-logs| CV["StoreTimeLogRequest<br/>started_at nullable · ended_at after started_at<br/>note max 500"]
+    CV --> CVR{"Valid?"}
+    CVR -->|No| CVE["422"]
+    CVR -->|Yes| CA{"authorize create<br/>TimeLog · task"}
+    CA -->|No| CAF["403"]
+    CA -->|Yes| CE{"ended_at<br/>provided?"}
 
-    CE -->|No — Start Timer| ST[started_at = now\nended_at = null\nduration_minutes = null\nis_active = true]
-    CE -->|Yes — Manual Entry| ME[Calculate duration_minutes\nstarted_at→diffInMinutes ended_at]
+    CE -->|No — Start Timer| ST["started_at = now<br/>ended_at = null<br/>duration_minutes = null<br/>is_active = true"]
+    CE -->|Yes — Manual Entry| ME["Calculate duration_minutes<br/>started_at→diffInMinutes ended_at"]
 
-    ST --> SC[timeLogs→create]
+    ST --> SC["timeLogs→create"]
     ME --> SC
-    SC --> SR[201 · TimeLogResource]
+    SC --> SR["201 · TimeLogResource"]
 
-    ACT -->|PATCH /time-logs/id/stop| SPA{authorize update?\nowner only}
-    SPA -->|No| SPF[403]
-    SPA -->|Yes| SPG{ended_at\nalready set?}
-    SPG -->|Yes| SPE[422 · Timer already stopped]
-    SPG -->|No| SPU[ended_at = now\nduration_minutes = round\nstarted_at→diffInMinutes now]
-    SPU --> SPR[200 · TimeLogResource · is_active = false]
+    ACT -->|PATCH /time-logs/id/stop| SPA{"authorize update?<br/>owner only"}
+    SPA -->|No| SPF["403"]
+    SPA -->|Yes| SPG{"ended_at<br/>already set?"}
+    SPG -->|Yes| SPE["422 · Timer already stopped"]
+    SPG -->|No| SPU["ended_at = now<br/>duration_minutes = round<br/>started_at→diffInMinutes now"]
+    SPU --> SPR["200 · TimeLogResource · is_active = false"]
 
-    ACT -->|DELETE /time-logs/id| DA{authorize delete?\nowner only}
-    DA -->|No| DF[403]
-    DA -->|Yes| DD[timeLog→delete]
-    DD --> DR[200 · Time log deleted]
+    ACT -->|DELETE /time-logs/id| DA{"authorize delete?<br/>owner only"}
+    DA -->|No| DF["403"]
+    DA -->|Yes| DD["timeLog→delete"]
+    DD --> DR["200 · Time log deleted"]
       </div>
     </div>
   </section>
@@ -880,21 +880,21 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    CRON([Cron · every minute]) -->|* * * * *| SR[php artisan schedule:run]
-    SR --> TC{Time = 08:00?}
-    TC -->|No| NOP[No-op · exit]
-    TC -->|Yes| CMD[tasks:send-due-date-reminders\nartisan command executes]
+    CRON(["Cron · every minute"]) -->|* * * * *| SR["php artisan schedule:run"]
+    SR --> TC{"Time = 08:00?"}
+    TC -->|No| NOP["No-op · exit"]
+    TC -->|Yes| CMD["tasks:send-due-date-reminders<br/>artisan command executes"]
 
-    CMD --> QR[Query tasks where\ndue_date = tomorrow\nAND status != completed]
-    QR --> EL[Eager-load user relation\nper task]
-    EL --> FC{Any tasks found?}
-    FC -->|None| DONE[Command exits · nothing to log]
-    FC -->|Yes| LOOP[Loop over each task]
+    CMD --> QR["Query tasks where<br/>due_date = tomorrow<br/>AND status != completed"]
+    QR --> EL["Eager-load user relation<br/>per task"]
+    EL --> FC{"Any tasks found?"}
+    FC -->|None| DONE["Command exits · nothing to log"]
+    FC -->|Yes| LOOP["Loop over each task"]
 
-    LOOP --> LG[Log::info Reminder\nuser.name · task.title · due_date]
-    LG --> NXT{More tasks?}
+    LOOP --> LG["Log::info Reminder<br/>user.name · task.title · due_date"]
+    LG --> NXT{"More tasks?"}
     NXT -->|Yes| LOOP
-    NXT -->|No| EXIT[Command exits]
+    NXT -->|No| EXIT["Command exits"]
       </div>
     </div>
   </section>
@@ -917,30 +917,30 @@ flowchart TD
     <div class="diagram-card">
       <div class="mermaid">
 flowchart TD
-    A([User registers]) --> AC[AuthController::register]
-    AC --> UC[User::create]
-    UC --> JD[SendWelcomeMail::dispatch user]
-    JD --> QC{QUEUE_CONNECTION\nenv value}
+    A(["User registers"]) --> AC["AuthController::register"]
+    AC --> UC["User::create"]
+    UC --> JD["SendWelcomeMail::dispatch user"]
+    JD --> QC{"QUEUE_CONNECTION<br/>env value"}
 
-    QC -->|sync — test env| SI[Job runs immediately\nin same process]
-    QC -->|database| DQ[Job written to jobs table]
-    QC -->|redis| RQ[Job pushed to Redis queue]
+    QC -->|sync — test env| SI["Job runs immediately<br/>in same process"]
+    QC -->|database| DQ["Job written to jobs table"]
+    QC -->|redis| RQ["Job pushed to Redis queue"]
 
-    DQ --> QW[php artisan queue:work\npicks up job]
+    DQ --> QW["php artisan queue:work<br/>picks up job"]
     RQ --> QW
 
-    SI --> JH[SendWelcomeMail::handle]
+    SI --> JH["SendWelcomeMail::handle"]
     QW --> JH
 
-    JH --> MS[Mail::to user.email\n→ send WelcomeMail markdown]
-    MS --> MC{MAIL_MAILER\nenv value}
+    JH --> MS["Mail::to user.email<br/>→ send WelcomeMail markdown"]
+    MS --> MC{"MAIL_MAILER<br/>env value"}
 
-    MC -->|array — test| MA[Email captured in memory\nnot actually sent]
-    MC -->|smtp| MB[Sent via SMTP server]
-    MC -->|ses| MC2[Sent via AWS SES]
+    MC -->|array — test| MA["Email captured in memory<br/>not actually sent"]
+    MC -->|smtp| MB["Sent via SMTP server"]
+    MC -->|ses| MC2["Sent via AWS SES"]
 
-    AC --> TK[createToken auth_token]
-    TK --> RS[201 · user + token returned to client]
+    AC --> TK["createToken auth_token"]
+    TK --> RS["201 · user + token returned to client"]
       </div>
     </div>
   </section>

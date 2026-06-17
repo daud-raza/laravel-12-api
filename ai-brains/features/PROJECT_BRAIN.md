@@ -125,6 +125,30 @@ There is no `Console/Kernel.php`. The `Schedule` facade is used directly in `rou
 
 The `providers` array contains only `App\Providers\AppServiceProvider::class` (merged onto `ServiceProvider::defaultProviders()`).
 
+### 3.1 What changed in this project (old skeleton → slim)
+
+These are the concrete structural changes this codebase adopted when migrating off the Laravel 9/10 skeleton. Every item below is verifiable in the listed file.
+
+| Concept | Old way (Laravel ≤10) | This project (11+ slim) | File |
+|---------|----------------------|-------------------------|------|
+| App bootstrap | `app.php` returned `new Application`, plus 3 Kernel files | One fluent `Application::configure()->withRouting()->withMiddleware()->withExceptions()->create()` | `bootstrap/app.php` |
+| HTTP Kernel | `app/Http/Kernel.php` listed middleware groups | **Deleted** — middleware in `->withMiddleware()` | (removed) |
+| Console Kernel | `app/Console/Kernel.php` held the scheduler | **Deleted** — scheduler in `routes/console.php` via `Schedule::command()` | `routes/console.php` |
+| Exception Handler | `app/Exceptions/Handler.php` class | **Deleted** — handled in `->withExceptions()` closure | `bootstrap/app.php` |
+| Policy registration | `AuthServiceProvider::$policies` array | `Gate::policy(Model::class, Policy::class)` | `app/Providers/AppServiceProvider.php` |
+| Event registration | `EventServiceProvider::$listen` array | `Event::listen(Event::class, Listener::class)` | `app/Providers/AppServiceProvider.php` |
+| Service providers | 5 (Auth, Event, Route, Broadcast, App) | **Only `AppServiceProvider`** — other 4 deleted | `config/app.php` |
+
+### 3.2 Version-to-version differences (10 → 11 → 12 → 13)
+
+> **Key fact:** the slim structure above debuted in **Laravel 11**, not 13. Versions 12 and 13 kept the same architecture. There is **no feature in this project unique to 13 and absent from 11/12** — they share the same skeleton. This project is "version 13" because of its framework dependency (`^13.0`) and PHP floor, not because of 13-only features.
+
+- **Laravel 10 → 11 (the big leap):** introduced the slim skeleton (everything in §3.1); minimum PHP 8.2; per-second rate limiting; built-in health route; casts definable as a `casts()` method.
+- **Laravel 11 → 12 (minor):** no new structural features — maintenance, dependency bumps, new starter kits (React/Vue/Livewire).
+- **Laravel 12 → 13 (this project):** same slim structure as 11; **minimum PHP 8.3** (this project requires `^8.3 || ^8.4`); Carbon 3 and updated Symfony components; internal refactors. An evolution, not a reinvention.
+
+**Accurate one-liner for interviews/docs:** *"Uses the slim application structure (single `bootstrap/app.php`, no Kernel/Handler files, `Gate::policy()` / `Event::listen()` registration, scheduler in `routes/console.php`) — introduced in Laravel 11 and inherited by 13 — and requires PHP 8.3+, which is the hard requirement Laravel 13 specifically raised."*
+
 ---
 
 ## 4. Setup & Commands

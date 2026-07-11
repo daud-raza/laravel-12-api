@@ -27,7 +27,7 @@ class TaskResource extends JsonResource
             'recurrence_ends_at' => $this->recurrence_ends_at?->toDateString(),
             'due_date' => $this->due_date?->toDateString(),
             'completed_at' => $this->completed_at?->toDateTimeString(),
-            'is_overdue' => $this->due_date && $this->due_date->isPast() && $this->status !== 'completed',
+            'is_overdue' => $this->due_date && $this->due_date->isBefore(today()) && $this->status !== 'completed',
             'category' => new CategoryResource($this->whenLoaded('category')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),

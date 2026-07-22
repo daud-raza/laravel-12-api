@@ -4,10 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\Message;
+use Modules\TaskManager\Models\Category;
+use Modules\TaskManager\Models\Tag;
+use Modules\TaskManager\Models\Task;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -68,5 +74,17 @@ class User extends Authenticatable implements JWTSubject
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);
+    }
+
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class)
+            ->withPivot(['last_read_at', 'last_read_message_id', 'joined_at', 'muted_at', 'role'])
+            ->withTimestamps();
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
     }
 }

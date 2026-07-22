@@ -1,18 +1,17 @@
 <?php
 
+use App\Http\Controllers\Web\Auth\WebAuthController;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Minimal session auth for the web chat UI.
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'login']);
+});
+Route::post('/logout', [WebAuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Chat page routes live in the Chat module (Modules/Chat/routes/web.php).

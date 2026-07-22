@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Task;
-use App\Models\TimeLog;
+use Modules\TaskManager\Models\Task;
+use Modules\TaskManager\Models\TimeLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

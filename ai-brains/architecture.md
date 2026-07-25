@@ -1,6 +1,6 @@
 # Architecture Overview
 
-High-level architecture of the Laravel 13 Task Manager API and the **planned** Chat module. Full built-system detail lives in [features/PROJECT_BRAIN.md](features/PROJECT_BRAIN.md).
+High-level architecture of the Laravel 13 Task Manager API and the **planned** Chat module. Full built-system detail lives in [features/PROJECT_BRAIN.md](features/PROJECT_BRAIN.md); per-feature docs are in [features/task-manager.md](features/task-manager.md) and [features/chat.md](features/chat.md).
 
 ---
 
@@ -14,7 +14,7 @@ Cross-cutting conventions: Policy-based ownership, API Resources (`withoutWrappi
 
 ## 3. Planned module — Chat (PLAN ONLY)
 
-> Not yet implemented. See the `chat-*.md` docs. Do not assume this code exists.
+> Not yet implemented. See [features/chat.md](features/chat.md) and [features/chat-database-design.md](features/chat-database-design.md). Do not assume this code exists.
 
 One-to-one messaging, API-first, with a Blade **server-render + API hybrid** frontend consuming a shared **ChatService** (the one new structural layer — justified by the hybrid needing identical logic in web and API controllers). Future-proofed for group chat via a participants pivot + `type` enum.
 

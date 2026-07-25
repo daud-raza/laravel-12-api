@@ -1,6 +1,8 @@
 # Chat — Database Design (Phase 3)
 
-> PLAN ONLY. No migrations generated. MySQL, InnoDB, utf8mb4. Follows existing conventions (see [features/PROJECT_BRAIN.md](features/PROJECT_BRAIN.md) §5): `bigint` PKs, `foreignId()->constrained()`, cascade rules, `timestamps`, soft deletes where recovery matters.
+> PLAN ONLY. No migrations generated. MySQL, InnoDB, utf8mb4. Follows existing conventions (see [PROJECT_BRAIN.md](PROJECT_BRAIN.md) §5): `bigint` PKs, `foreignId()->constrained()`, cascade rules, `timestamps`, soft deletes where recovery matters.
+>
+> This is the standalone DB-schema doc for the Chat module. Everything else (overview, architecture, API, security, performance, edge cases, roadmap) lives in [chat.md](chat.md).
 
 ---
 
@@ -77,8 +79,8 @@ Per-message read receipts for group chat: `message_id` FK, `user_id` FK, `read_a
 
 ## 7. Field-level rationale highlights
 
-- **`direct_hash`** solves the "one conversation per pair" problem deterministically and race-safely (unique constraint catches concurrent creates — see [chat-edge-cases.md](chat-edge-cases.md)).
-- **Denormalized `last_message_id` / `last_message_at`** make the conversation-list query index-only sortable, avoiding a correlated subquery or join per row (see [chat-performance.md](chat-performance.md)).
+- **`direct_hash`** solves the "one conversation per pair" problem deterministically and race-safely (unique constraint catches concurrent creates — see [chat.md §12 Edge Cases](chat.md#12-edge-cases)).
+- **Denormalized `last_message_id` / `last_message_at`** make the conversation-list query index-only sortable, avoiding a correlated subquery or join per row (see [chat.md §11 Performance](chat.md#11-performance)).
 - **`client_message_id` + unique** is the backbone of idempotent sends across retries, refreshes, and simultaneous submits.
 - **Server `id` for ordering** (not `created_at`) sidesteps clock-drift/timezone ordering bugs.
 - **Nullable `user_id` (`nullOnDelete`)** keeps history intact when an account is deleted.
